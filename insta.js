@@ -11,7 +11,7 @@ var IG_PUB=[
 ];
 /* 방송 공개 후 공개 계정 최신 게시물에 달리는 댓글 (시간이 지날수록 늘어남) */
 var IG_VIEWER=[
-  [10*60+40,'hs2_watcher','환승로그 출연자 공개 보고 왔어요'],
+  [10*60+40,'hs2_watcher',SHOW.name+' 출연자 공개 보고 왔어요'],
   [11*60,'lyric_lover','프로듀서셨구나… 곡 찾아 들으러 갑니다'],
   [12*60,'x_who','X 누구예요 ㅠㅠㅠ 힌트라도'],
   [14*60+30,'poster_k','단체 포스터 보고 반함'],
@@ -31,7 +31,7 @@ var IG_PRIV=[
   {k:'us3',d:'2021년 8월 2일',c:'강릉',l:10},
   {k:'us1',d:'2019년 5월 19일',c:'오늘부터',l:8},
 ];
-function igPubFollowers(){ const t=S.time; return 3212+(S.flags.inHouse?Math.max(0,Math.round((t-630)*38.6)):0); }
+function igPubFollowers(){ const t=S.time; if(S.day===1) return 3212+(S.flags.inHouse?Math.max(0,Math.round((t-630)*38.6)):0); return 3212+30000+(S.day-2)*41000+(S.day>=2&&t>=14*60?Math.round((t-14*60)*55):0); }
 function igAcct(){ return V.igAcct||'pub'; }
 function igHandle(a){ return a==='pub'?IG.pub:IG.priv; }
 function igRing(k,size,img){ return `<div style="width:${size}px;height:${size}px;border-radius:50%;padding:2.5px;background:conic-gradient(#feda75,#fa7e1e,#d62976,#962fbf,#4f5bd5,#feda75)"><div style="width:100%;height:100%;border-radius:50%;border:2.5px solid #fff;background:${img?`url('${img}') center/cover`:CAST[k].c};display:grid;place-items:center;color:#fff;font-weight:700">${img?'':esc(CAST[k].s[0])}</div></div>`; }
@@ -72,7 +72,7 @@ function vInsta(){
 }
 function fmtN2(n){ return n>=10000?(n/10000).toFixed(1).replace(/\.0$/,'')+'만':n.toLocaleString(); }
 function vIgPost(a,p){
-  const viewers=a==='pub'&&V.igPost===0&&S.flags.inHouse?IG_VIEWER.filter(v=>S.time>=v[0]):[];
+  const viewers=a==='pub'&&V.igPost===0&&S.flags.inHouse?IG_VIEWER.filter(v=>S.day>1||S.time>=v[0]).concat(S.day>=2?[[0,'producer_stan','노래 다 들었어요 신곡 언제 나와요']]:[]).concat(S.day>=3?[[0,'mug_detective','추억 공간 머그컵이랑 같은 거 맞죠?']]:[]).concat(S.day>=4?[[0,'peanut_alert','땅콩 사건 보고 왔습니다']]:[]):[];
   const cms=(p.cm||[]).map(([h,x])=>[h.endsWith('.s')?CAST[h.split('.')[0]].s:h.replace('_',''),x]).concat(viewers.map(v=>[v[1],v[2]]));
   const likes=p.l+(a==='pub'&&V.igPost===0?Math.round(Math.max(0,igPubFollowers()-3212)*.31):0);
   return `<div class="view">${navBar('게시물','igBack')}

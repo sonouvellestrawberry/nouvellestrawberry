@@ -64,7 +64,7 @@ screenEl.addEventListener('click',e=>{
     case 'pv': { const items=albumItems(d.al); go({screen:'app',app:'photos',sub:'v:'+d.k,al:d.al,items,idx:+d.i},'fadein'); break; }
     case 'pvBack': if(V.fromChat) go({screen:'app',app:'talk',chat:V.fromChat}); else go({screen:'app',app:'photos',sub:V.al}); break;
     case 'vtap': if(e.target.closest('.hs')) return; V.dark=!V.dark; V.info=false; render(); break;
-    case 'spot': { V.spot=+d.i; const sp=GROUP_SPOTS[V.spot]; if(sp.clue) addClue(sp.clue); if(sp.side) addSide(sp.side); render(); break; }
+    case 'spot': { V.spot=+d.i; const key=V.items?V.items[V.idx||0]:'group'; const sp=((window.SPOTS&&SPOTS[key])||GROUP_SPOTS)[V.spot]; if(sp.clue) addClue(sp.clue); if(sp.side) addSide(sp.side); render(); break; }
     case 'album': { S.album=d.v; S.flags.albumDecided=true; if(d.v==='deleted'){S.st.dist-=2;S.flags.albumDel=true;} if(d.v==='keep'){S.st.sway-=1;S.flags.albumKept=true;} toast(d.v==='keep'?'그대로 뒀다':d.v==='hidden'?'가려진 항목으로 옮겼다':'앨범을 지웠다'); save(); go({screen:'app',app:'photos'},'pop'); break; }
     case 'hiddenOpen': faceId(()=>{V.unlockedHidden=true;render();}); break;
     case 'restore': S.flags.restored=true; S.st.dist+=1; toast('사진을 복구했다'); save(); render(); break;
@@ -129,12 +129,15 @@ screenEl.addEventListener('click',e=>{
 });
 function typeLyric(i){
   if(lyricAnim) return;
-  const line=S.notes.l1?LYRIC_L2()[i]:LYRIC_L1[i]; lyricAnim=true; render();
-  let n=0; const iv=setInterval(()=>{ n++; const el=$('#lyricLine'); if(el) el.textContent=line.slice(0,n);
-    if(n>=line.length){ clearInterval(iv); setTimeout(()=>{ lyricAnim=null;
-      if(!S.notes.l1){ S.notes.l1=line; if(i===2) S.st.sway+=1; }
-      else { S.notes.today=S.notes.l1+'\n'+line; S.flags.memoDone=true; if(line.includes('울었')) S.st.dist+=1; if(line.includes('지난')) S.st.dist-=1; if(line.includes('쥔')) S.flags.canonCry=true; }
-      save(); render(); },500); } },70);
+  const opts=LYRIC_OPTS(); const n=S.notes;
+  if(!n.title){ n.title=opts[i]; n.lines=[]; save(); render(); return; }
+  const line=opts[i]; lyricAnim=true; render();
+  let c=0; const iv=setInterval(()=>{ c++; const el=$('#lyricLine'); if(el) el.textContent=line.slice(0,c);
+    if(c>=line.length){ clearInterval(iv); setTimeout(()=>{ lyricAnim=null; n.lines.push(line);
+      if(line.includes('울었')||line.includes('운 ')||line.includes('운 날')) S.st.dist+=1;
+      if(n.lines.length===2){ S.flags.memoDone=true; if(i===2) S.st.sway+=1; }
+      if(n.lines.length===4){ S.flags.songDone=true; if(i===0) S.st.dist+=1; }
+      save(); render(); },450); } },65);
 }
 $('#island').addEventListener('click',()=>{ lastAct=Date.now(); if($('#island').classList.contains('wide')) hideHint(); else showHint(); });
 $('#banner').addEventListener('click',()=>{ const k=$('#banner').dataset.k; $('#banner').classList.remove('on'); openFromNotif(k); });

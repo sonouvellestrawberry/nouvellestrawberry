@@ -45,11 +45,11 @@ function chatSVG(lines){
   return svgURI(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 ${y+10}"><rect width="640" height="${y+10}" fill="#b6c8d9"/><rect width="640" height="40" fill="#a9bccd"/><text x="320" y="27" font-size="16" fill="#222" text-anchor="middle" font-weight="700" font-family="sans-serif">${esc(T('{pd.s} · 하우스'))}  8</text>${body}</svg>`);
 }
 function smsSVG(){
-  const r=npcSms(); const ks=['me','ex','mg','hj','js','so','ca','cb']; const cx=320, cy=230, R=145;
+  const r=npcSms().filter(x=>CAST[x.f]&&CAST[x.to]); const ks=['me','ex','mg','hj','js','so','ca','cb'].concat(S.day>=4?['dy']:[]); const cx=320, cy=230, R=145;
   const pos={}; ks.forEach((k,i)=>{ const a=(i/ks.length)*Math.PI*2-Math.PI/2; pos[k]=[cx+R*Math.cos(a),cy+R*Math.sin(a)]; });
-  const arrows=r.map(({f,to})=>{ const [x1,y1]=pos[f],[x2,y2]=pos[to]; const dx=x2-x1,dy=y2-y1,L=Math.hypot(dx,dy); const s=34/L; return `<line x1="${x1+dx*s}" y1="${y1+dy*s}" x2="${x2-dx*s*1.2}" y2="${y2-dy*s*1.2}" stroke="${f==='me'?'#ffd400':'#ff5c8a'}" stroke-width="${f==='me'?4:3}" marker-end="url(#a${f==='me'?'y':'p'})" opacity=".95"/>`; }).join('');
+  const arrows=r.map(({f,to})=>{ if(!pos[f]||!pos[to]) return ''; const [x1,y1]=pos[f],[x2,y2]=pos[to]; const dx=x2-x1,dy=y2-y1,L=Math.hypot(dx,dy); const s=34/L; return `<line x1="${x1+dx*s}" y1="${y1+dy*s}" x2="${x2-dx*s*1.2}" y2="${y2-dy*s*1.2}" stroke="${f==='me'?'#ffd400':'#ff5c8a'}" stroke-width="${f==='me'?4:3}" marker-end="url(#a${f==='me'?'y':'p'})" opacity=".95"/>`; }).join('');
   const nodes=ks.map(k=>{ const [x,y]=pos[k]; return `<circle cx="${x}" cy="${y}" r="28" fill="${CAST[k].c}" stroke="#fff" stroke-width="3"/><text x="${x}" y="${y+7}" font-size="19" fill="#fff" font-weight="800" text-anchor="middle" font-family="sans-serif">${esc(CAST[k].s)}</text>`; }).join('');
-  return svgURI(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 420"><defs><marker id="ap" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0L10 5L0 10z" fill="#ff5c8a"/></marker><marker id="ay" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0L10 5L0 10z" fill="#ffd400"/></marker><radialGradient id="g"><stop offset="0" stop-color="#3a1f35"/><stop offset="1" stop-color="#120c16"/></radialGradient></defs><rect width="640" height="420" fill="url(#g)"/><text x="30" y="46" font-size="24" fill="#fff" font-weight="800" font-family="sans-serif">첫날 밤, 문자의 방향</text><text x="30" y="72" font-size="15" fill="#c9a" font-family="sans-serif">${esc(SHOW.name)}${SHOW.season}</text>${arrows}${nodes}</svg>`);
+  return svgURI(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 420"><defs><marker id="ap" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0L10 5L0 10z" fill="#ff5c8a"/></marker><marker id="ay" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0L10 5L0 10z" fill="#ffd400"/></marker><radialGradient id="g"><stop offset="0" stop-color="#3a1f35"/><stop offset="1" stop-color="#120c16"/></radialGradient></defs><rect width="640" height="420" fill="url(#g)"/><text x="30" y="46" font-size="24" fill="#fff" font-weight="800" font-family="sans-serif">${S.day===7?"최종 선택":S.day===1?"첫날 밤, 문자의 방향":S.day+"일차 밤, 문자의 방향"}</text><text x="30" y="72" font-size="15" fill="#c9a" font-family="sans-serif">${esc(SHOW.name)}${SHOW.season}</text>${arrows}${nodes}</svg>`);
 }
 
 /* ---- 게시물 목록 ---- */
@@ -59,6 +59,7 @@ function pollPct(){
   const t=Object.values(r).reduce((a,b)=>a+b,0); for(const k in r) r[k]=Math.round(r[k]/t*100); return r;
 }
 function tweets(){
+  if(S.day>1) return tweetsDay(S.day);
   const st=S.st,f=S.flags,c=S.clues,rx=S.rxDone;
   const L=[];
   const add=(cond,o)=>{ if(cond){ o.id=o.h+L.length; o.x=T(o.x); if(o.quote) o.quote.x=T(o.quote.x); L.push(o);} };
@@ -73,7 +74,7 @@ function tweets(){
   add(f.banter1,{u:'오늘도과몰입',h:'immerse_daily',t:'31분',x:'첫마디부터 킹받게 하는 {me.s} 뭐임ㅋㅋㅋㅋㅋ',l:5410,r:880,v:120000,rp:90,media:capSVG({tone:'sofa',name:CAST.me.s,who:'me',sub:'"'+T('{mg.s}')+' 씨 그럼 말로 하세요 ㅋㅋ"',color:'#ffe14d'})});
   add(st.mg>=4,{u:'ㅇㅇ',h:'anon_1204',t:'33분',x:'{mg.s} {me.s} 티키타카 미쳤음 이거 X 아니면 내가 하차함',l:8902,r:1200,v:210000,rp:233,quote:{u:'환승요정',h:'hs_fairy',x:'근데 X끼리 저렇게 편하게 놀 수 있나? 너무 편해서 오히려 아닌 것 같기도'}});
   const P=pollPct(); const top=Object.entries(P).sort((a,b)=>b[1]-a[1]);
-  add(1,{u:'환승로그 투표방',h:'hs_poll',t:'40분',x:'{me.s} X 누구라고 봄?',l:3200,r:610,v:96000,rp:180,poll:top.map(([k,v])=>[CAST[k].s,v]),pollN:18204});
+  add(1,{u:SHOW.name+' 투표방',h:'hs_poll',t:'40분',x:'{me.s} X 누구라고 봄?',l:3200,r:610,v:96000,rp:180,poll:top.map(([k,v])=>[CAST[k].s,v]),pollN:18204});
   add(1,{u:'태오탐구',h:'taeo_lab',t:'44분',x:'단톡 자기소개 한 줄 쓰고 끝ㅋㅋㅋ 극I 그 자체',l:1980,r:210,v:54000,rp:41,media:chatSVG([['ex',T('{ex}입니다.')]])});
   add(c.photo,{u:'줌인전문',h:'zoomzoom',t:'47분',x:'단체사진 {ex.s} 시선 확대해봤는데 이거 {me.s} 쪽 아님?? 나만 봄???',l:7210,r:1803,v:170000,rp:350,media:photoSrc('group')});
   add(f.teaseMg,{u:'독한우진',h:'tough_uj',t:'50분',x:'우는 사람한테 이러는 거 너무 웃김ㅋㅋㅋㅋㅋㅋ',l:4990,r:700,v:99000,rp:120,media:chatSVG([['me',T('{mg.s} 씨 문 앞에 휴지 더 갖다 놓을까요')]])});
@@ -105,7 +106,7 @@ function openTw(again){
     clearInterval(TW.timer); TW.timer=setInterval(()=>{ if(!$('#tw').classList.contains('on')){clearInterval(TW.timer);return;} if(TW.queue.length){ TW.fresh.push(TW.queue.shift()); renderTw(true); } },7000);
   };
   if(again) return go();
-  const n=document.createElement('div'); n.className='nightcard'; n.innerHTML='그날 밤 11시,<br>첫 방송이 나갔다.'; $('#screen').appendChild(n);
+  const n=document.createElement('div'); n.className='nightcard'; n.innerHTML=S.day===7&&S.ending?'그리고 일주일 뒤,<br>최종회가 나갔다.':`그날 밤 11시,<br>${['','첫','두 번째','세 번째','네 번째','다섯 번째','여섯 번째'][S.day]} 방송이 나갔다.`; $('#screen').appendChild(n);
   setTimeout(go,1400); setTimeout(()=>n.remove(),2700);
 }
 function byId(id){ return TW.all.find(t=>t.id===id); }
@@ -131,17 +132,17 @@ function renderTw(soft){
     body=ids.map(id=>twItem(byId(id))).join('')+'<div style="height:120px"></div>';
   } else if(TW.tab==='search'){
     head=`<div class="top" style="gap:12px"><button class="me" data-tw="menu" style="background:${CAST.me.c}"></button><div class="srch" style="flex:1;margin:0">${twIc.search.replace('viewBox','width="16" height="16" viewBox')} 검색</div></div><div class="tabs"><button>추천<i></i></button><button class="on">트렌드<i></i></button><button>엔터테인먼트<i></i></button></div>`;
-    const tr=[[SHOW.tag,'42.1만'],[T(S.st.mg>=4?'{mg.s}{me.s}':'{ex.s} 울었어요'),'8.7만'],['여름 감기 문자','6.1만'],[T('{mg.s} 화장실'),'4.4만'],[T('{hj.s} 울 줄 알았어요'),'3.9만'],[T('{ex.s} 극I'),'3.2만'],['첫 문자 결과','2.9만'],[T(S.clues.photo?'{ex.s} 시선':'환승로그 단톡'),'1.4만']];
+    const tr=[[SHOW.tag,'42.1만'],[T(S.st.mg>=4?'{mg.s}{me.s}':'{ex.s} 울었어요'),'8.7만'],['여름 감기 문자','6.1만'],[T('{mg.s} 화장실'),'4.4만'],[T('{hj.s} 울 줄 알았어요'),'3.9만'],[T('{ex.s} 극I'),'3.2만'],['첫 문자 결과','2.9만'],[T(S.clues.photo?'{ex.s} 시선':SHOW.name+' 단톡'),'1.4만']];
     body=tr.map((t,i)=>`<div class="tr1"><div><small>${i+1} · 엔터테인먼트 · 실시간 트렌드</small><b>${esc(t[0])}</b><small>게시물 ${t[1]}개</small></div><span style="color:#71767b">⋯</span></div>`).join('')+'<div style="height:120px"></div>';
   } else if(TW.tab==='noti'){
     head=`<div class="top"><button class="me" data-tw="menu" style="background:${CAST.me.c}"></button><span class="logo">알림</span><span style="width:32px"></span></div><div class="tabs"><button class="on">전체<i></i></button><button>멘션<i></i></button></div>`;
     body=[['@hwanseunglog_tv','님이 새 게시물을 올렸습니다: 첫날 밤, 문자는 누구에게 향했을까'],[SHOW.tag,' 관련 게시물이 많아지고 있어요'],['@x_reasoning','님의 스레드가 인기를 얻고 있어요']].map(([a,b])=>`<div class="tr1" style="justify-content:flex-start;gap:12px"><span style="color:#1d9bf0">★</span><div><b style="display:inline">${esc(a)}</b>${esc(b)}</div></div>`).join('');
   } else {
     head=`<div class="top"><button data-tw="tab" data-k="home" style="color:#e7e9ea;font-size:20px">←</button><span class="logo">관찰 노트</span><span style="width:32px"></span></div>`;
-    const found=Object.keys(CLUES).filter(k=>S.clues[k]); const miss=Object.keys(CLUES).filter(k=>!S.clues[k]);
+    const avail=Object.keys(CLUES).filter(k=>(CLUES[k].day||1)<=S.day); const found=avail.filter(k=>S.clues[k]); const miss=avail.filter(k=>!S.clues[k]);
     const sides=Object.keys(S.side).filter(k=>SIDE[k]);
     const liked=TW.all.filter(t=>TW.bm[t.id]);
-    body=`<div style="padding:14px 16px;color:#71767b;font-size:14px">찾은 단서 ${found.length} / ${Object.keys(CLUES).length} · 플레이어만 볼 수 있어요</div>`+
+    body=`<div style="padding:14px 16px;color:#71767b;font-size:14px">찾은 단서 ${found.length} / ${avail.length} · 플레이어만 볼 수 있어요</div>`+
       found.map(k=>`<div class="bmk"><b>${esc(T(CLUES[k].t))}</b><p>${esc(T(CLUES[k].x))}</p></div>`).join('')+
       miss.map(k=>`<div class="bmk miss"><b>놓친 단서</b><p>${esc(T(CLUES[k].h||'다음엔 다른 선택을 해봐요.'))}</p></div>`).join('')+
       (sides.length?`<div style="padding:18px 16px 4px;color:#71767b;font-size:14px">다른 커플에 대한 메모</div>`+sides.map(k=>`<div class="bmk"><b style="color:#1d9bf0">?</b><p>${esc(T(SIDE[k]))}</p></div>`).join(''):'')+
@@ -150,7 +151,7 @@ function renderTw(soft){
   }
   const fresh=TW.tab==='home'&&TW.fresh.length;
   el.innerHTML=`<div class="twin"><div class="th">${head}</div>${fresh?`<button class="newpill" data-tw="fresh"><span class="avs">${TW.fresh.slice(-3).map(id=>`<i style="background:hsl(${hue(byId(id).h)} 45% 45%)"></i>`).join('')}</span>↑ 게시물 ${TW.fresh.length}개</button>`:''}<div class="feed">${body}</div>
-    <button class="fab alt" data-tw="replay">↻ 다시 하기</button><button class="fab" disabled>다음 날 · 준비 중</button>
+    ${S.day<7&&!S.ending?`<button class="fab" data-tw="next">${S.day+1}일차로 →</button><button class="fab alt" data-tw="replay">↻ 다시 하기</button>`:`<button class="fab" data-tw="ending">엔딩 다시 보기</button><button class="fab alt" data-tw="replay">↻ 처음부터</button>`}
     <nav class="twnav">${[['home',TW.tab==='home'?twIc.homeF:twIc.home],['search',twIc.search],['noti',twIc.bell],['note',twIc.bm]].map(([k,g])=>`<button class="${TW.tab===k?'on':''}" data-tw="tab" data-k="${k}" aria-label="${k}">${g}${k==='noti'?'<span class="bd">3</span>':''}</button>`).join('')}</nav></div>`;
   if(soft){ const f=el.querySelector('.feed'); if(f) f.scrollTop=sc; }
 }
@@ -168,9 +169,75 @@ $('#tw').addEventListener('click',e=>{
   else if(a==='rt'){ TW.rt[id]=!TW.rt[id]; renderTw(true); }
   else if(a==='bm'){ TW.bm[id]=!TW.bm[id]; renderTw(true); toast(TW.bm[id]?'북마크에 추가됨':'북마크에서 삭제됨'); }
   else if(a==='reply') toast('보는 사람은 답글을 달 수 없어요');
+  else if(a==='next') nextDay();
+  else if(a==='ending'){ $('#tw').classList.remove('on'); showEnding(); }
   else if(a==='sub'){ TW.sub=b.dataset.k; renderTw(); }
   else if(a==='tab'){ TW.tab=b.dataset.k; renderTw(); }
   else if(a==='fresh'){ TW.shown=[...TW.shown.filter(i=>byId(i).pin),...TW.fresh.reverse(),...TW.shown.filter(i=>!byId(i).pin)]; TW.fresh=[]; renderTw(); $('#tw .feed').scrollTop=0; }
   else if(a==='replay'){ showAlert('처음부터 다시 할까요?','지금 기록은 사라져요.',[['취소',()=>{}],['다시 하기',()=>{ $('#tw').classList.remove('on'); const n=S.name,p=S.pin; S=freshState(n,p); save(); bootGame(true); }]]); }
   else if(a==='menu'){ showAlert(S.name,'',[['다른 플레이어',()=>{ $('#tw').classList.remove('on'); S=null; V={screen:'setup'}; render(); }],['닫기',()=>{}]]); }
 });
+
+/* ---- 2일차 ~ 7일차 반응 ---- */
+function tweetsDay(d){
+  const st=S.st,f=S.flags,c=S.clues; const L=[];
+  const add=(cond,o)=>{ if(cond){ o.id=o.h+d+'_'+L.length; o.x=T(o.x); if(o.quote) o.quote.x=T(o.quote.x); L.push(o);} };
+  const off={u:SHOW.name+' 공식',h:'hwanseunglog_tv',vf:true,av:'#ff5c8a'};
+  const P=pollPct(); const top=Object.entries(P).sort((a,b)=>b[1]-a[1]);
+  if(d===2){
+    add(1,{...off,pin:true,t:'1시간',x:'📋 출연자 정보 공개\n나이와 직업이 공개된 뒤, 문자의 방향은?\n{tag}',l:18800,r:4100,v:640000,rp:1200,media:smsSVG()});
+    add(1,{u:'프듀덕',h:'producer_stan',t:'10분',x:'{me.s} 프로듀서였던 거 실화냐… 인스타 팔로워 하루 만에 3만 넘음',l:12100,r:2600,v:300000,rp:300});
+    add(1,{u:'회계사태오',h:'cpa_taeo',t:'14분',x:'{ex.s} 회계사ㅋㅋㅋ 단톡 "네." 한 글자 답장이 너무 회계사임',l:6400,r:900,v:140000,rp:120,media:chatSVG([['ex','네.']])});
+    add(f.banter3,{u:'킹받음',h:'kingbat',t:'20분',x:'"말 놔도 돼?" "싫은데요 ㅋㅋ" {me.s} 진짜 {mg.s} 놀리는 데 재능 있음',l:7300,r:1100,v:150000,rp:140});
+    add(f.dateWith==='ex',{u:'과몰입러',h:'overimmerse',t:'25분',x:'{me.s} {ex.s} 장보기 데이트 성사됨!!!!! 둘 다 서로 골랐다고!!!!\n근데 둘이 한 마디도 안 함',l:16200,r:4100,v:410000,rp:700,media:capSVG({tone:'table',sub:'(장바구니에 감기약을 넣는 태오)'.replace('태오',CAST.ex.s)})});
+    add(f.dateWith==='mg',{u:'민규우진',h:'mgwj',t:'25분',x:'카트 타는 {mg.s} 밀어주는 {me.s} ㅋㅋㅋㅋㅋ 서른 다 된 사람들 맞냐',l:9900,r:2000,v:220000,rp:310,media:capSVG({tone:'sofa',sub:'(카트 탑승)'})});
+    add(f.dateWith==='js'||f.jsCart,{u:'룸메즈',h:'roommates',t:'28분',x:'{me.s} {js.s} 장보기에서 카트 쟁탈전함ㅋㅋ 이건 그냥 대학 동기 아님?',l:6100,r:800,v:130000,rp:90});
+    add(f.dateWith==='so',{u:'막내온탑',h:'sion_top',t:'30분',x:'"형!! 저 형 고를 줄 알았죠??" {so.s} 꼬리 보임',l:5600,r:700,v:110000,rp:80});
+    add(f.liePasta,{u:'촉',h:'instinct',t:'33분',x:'{ex.s}가 "아직 파스타 좋아해?" 물었는데 {me.s} "이제 별로"\n\n아니 첫날 저녁 투표 파스타 찍었잖아요',l:11400,r:2500,v:260000,rp:380});
+    add(!!S.flags.exPicked1,{u:'추리반장',h:'detective_k',t:'40분',x:'제작진 피셜 {ex.s}도 데이트 신청 {me.s} 썼대… 근데 {me.s}는 다른 사람 씀',l:13800,r:3300,v:330000,rp:560});
+  } else if(d===3){
+    add(1,{...off,pin:true,t:'1시간',x:'🗝 X 데이트\n각자의 X와 보낸 하루. 누가 누구와 있었을까?\n{tag}',l:24100,r:6200,v:920000,rp:2300});
+    add(1,{u:'X추리반',h:'x_reasoning',t:'8분',x:'🧵 3화 X 데이트 장소로 다 들킴\n{me.s} - {ex.s}: 같은 추억 공간에 머그컵 두 개\n{mg.s} - {hj.s}: 돌아와서 또 움',l:21000,r:6100,v:540000,rp:980});
+    add(f.teaseLetter,{u:'눈물버튼',h:'tearbtn_',t:'12분',x:'"형 거 좀 건조하더라" ← 첫날 소개서 얘기 7년 산 사람만 할 수 있는 말투',l:9800,r:2000,v:210000,rp:250});
+    add(f.askedPocket,{u:'줌인전문',h:'zoomzoom',t:'15분',x:'{ex.s} 왼쪽 주머니 계속 만지는 거 다들 봄??? 거기 뭐 있음',l:15400,r:4200,v:390000,rp:610,media:capSVG({tone:'night',name:CAST.ex.s,who:'ex',sub:'"…아무것도."'})});
+    add(f.coldDate,{u:'ㅠ',h:'sad_t',t:'18분',x:'"그런 거 이제 신경 쓰지 마" {me.s} 말에 {ex.s} 표정 무너짐',l:8800,r:1500,v:190000,rp:300});
+    add(1,{u:'민규지킴이',h:'mg_guard',t:'22분',x:'{mg.s} X 데이트 다녀와서 또 화장실ㅋㅋㅋ 이번엔 {hj.s}가 휴지 채워놓음',l:11200,r:2400,v:250000,rp:330});
+    add(c.mug,{u:'머그탐정',h:'mug_detective',t:'30분',x:'{me.s} 인스타 작업실 사진 머그컵이랑 추억 공간 머그컵 같은 거임\n\n제 말 맞았죠',l:19800,r:5600,v:480000,rp:900});
+  } else if(d===4){
+    add(1,{...off,pin:true,t:'1시간',x:'🐟 새로운 출연자가 들어왔습니다\n{tag}',l:20300,r:4800,v:780000,rp:2100,media:smsSVG()});
+    add(1,{u:'메기기다림',h:'waiting_catfish',t:'7분',x:'{dy.s} 직진 미쳤음 들어오자마자 {ex.s} 커피 타줌',l:9900,r:1700,v:240000,rp:520,media:chatSVG([['dy',T('{ex.s} 씨 커피 연하게 드시죠?')]])});
+    add(f.exposed,{u:'과몰입러',h:'overimmerse',t:'9분',x:'"땅콩 들어간 건 주지 마세요"\n\n{me.s} 이 한 줄로 시즌 끝냄. X 확정',l:41200,r:12800,v:1200000,rp:3200,media:chatSVG([['me','땅콩 들어간 건 주지 마세요'],['ex','알레르기 있어요. 고마워요.']])});
+    add(!f.exposed,{u:'답답',h:'frustrated',t:'9분',x:'{me.s} 왜 아무 말도 안 해!!!!! 견과류 라떼라잖아!!!',l:7700,r:900,v:160000,rp:410});
+    add(f.toldMg,{u:'룸메즈2',h:'roommates2',t:'15분',x:'{me.s} {mg.s} 새 룸메 첫날 밤에 서로 X 고백함ㅋㅋㅋ 비밀 지키기로 함 (방송 나감)',l:12600,r:2800,v:270000,rp:400});
+    add(f.dyLie,{u:'촉',h:'instinct',t:'20분',x:'{dy.s}: "{ex.s} 씨랑 친하세요?" {me.s}: "아뇨. 별로"\n\n7년…',l:8800,r:1600,v:190000,rp:290});
+  } else if(d===5){
+    add(1,{...off,pin:true,t:'1시간',x:'🌊 강릉. 그리고 진실게임\n{tag}',l:26800,r:7100,v:990000,rp:2600});
+    add(c.truth,{u:'눈물버튼',h:'tearbtn_',t:'6분',x:'{ex.s} "…있어요." 3초 동안 숨 참음',l:30100,r:9200,v:880000,rp:1700,media:capSVG({tone:'night',name:CAST.ex.s,who:'ex',sub:'"…있어요."',color:'#ffe14d'})});
+    add(f.saidYes,{u:'과몰입러',h:'overimmerse',t:'9분',x:'{me.s} "X랑 다시 만날 생각 있어요?" "…있어요"\n\n강릉에서 이러면 반칙이지',l:28800,r:8800,v:830000,rp:1500});
+    add(f.saidNo,{u:'ㅠ',h:'sad_t',t:'9분',x:'"아니요" 할 때 {ex.s} 잔 내려놓는 소리 들림…',l:12000,r:2100,v:300000,rp:600});
+    add(st.so>=4,{u:'막내온탑',h:'sion_top',t:'12분',x:'{so.s} 바다 들어가서 "형도 와요!!" 하는 거 청춘 영화임',l:14400,r:3100,v:350000,rp:420,media:capSVG({tone:'sofa',sub:'"형도 와요!!"'})});
+    add(f.jsLean,{u:'룸메즈',h:'roommates',t:'15분',x:'{me.s} 술 취해서 {js.s} 어깨에 기댐… 친구 케미가 이렇게 무섭다',l:10400,r:1900,v:240000,rp:360});
+    add(f.lieX,{u:'촉',h:'instinct',t:'20분',x:'"이 중에 X 있어요?" "없어요" ← 시청자 전원 거짓말 탐지기 울림',l:9300,r:1300,v:210000,rp:330});
+  } else if(d===6){
+    add(1,{...off,pin:true,t:'1시간',x:'🎤 속마음 인터뷰\n{tag}',l:22400,r:5600,v:860000,rp:1900});
+    add(1,{u:'눈물버튼',h:'tearbtn_',t:'4분',x:'{ex.s} 인터뷰\n"그날 종로에 반지 사러 갔었어요. 근데 말을 못 했어요."\n\n그래서 D-17이었냐고',l:48800,r:16100,v:1600000,rp:4200,media:capSVG({tone:'night',name:CAST.ex.s,who:'ex',sub:'"그날 종로에 반지 사러 갔었어요"',color:'#ffe14d'})});
+    add(c.interview,{u:'새벽세시',h:'am_3',t:'8분',x:'{me.s} 인터뷰 "다 좋은데 그게 변할까 봐 무서웠어요"\n\n둘이 같은 걸 무서워했던 거잖아',l:36100,r:11000,v:1100000,rp:2600});
+    add(f.ivNo,{u:'ㅠ',h:'sad_t',t:'10분',x:'"아니요. 끝났어요." {me.s} 진심일까',l:9000,r:1200,v:200000,rp:500});
+    add(1,{u:SHOW.name+' 투표방',h:'hs_poll',t:'20분',x:'최종 선택 예측: {me.s}는 누구를?',l:9800,r:2200,v:300000,rp:900,poll:top.map(([k,v])=>[CAST[k].s,v]),pollN:52100});
+    add(1,{u:'민규지킴이',h:'mg_guard',t:'25분',x:'{mg.s} "울지 마라 시온아" → 3초 뒤 "…인정" 본인이 제일 울 예정',l:8800,r:1100,v:180000,rp:200});
+  } else {
+    const fp=S.final? S.final.p : {}; const me=S.final?S.final.me:'ex'; const good=S.final&&S.final.good;
+    add(1,{...off,pin:true,t:'방금',x:'💌 최종 선택\n일주일의 끝, 모두의 선택\n{tag}',l:88000,r:31000,v:4200000,rp:12000,media:smsSVG()});
+    add(me==='ex'&&good,{u:'과몰입러',h:'overimmerse',t:'1분',x:'재회!!!!!!!!!!!!!!!!!!!\n반지 상자 주머니에 넣어주는 거 보고 울었다 진짜로',l:120000,r:40000,v:5100000,rp:9000});
+    add(me==='ex'&&!good,{u:'눈물버튼',h:'tearbtn_',t:'1분',x:'{ex.s} "이번엔 내가 기다릴게"\n\n최종 선택 안 했는데 이게 제일 큰 고백임',l:91000,r:30000,v:3800000,rp:7000});
+    add(me==='mg'&&good,{u:'민규우진',h:'mgwj',t:'1분',x:'민규우진 성사!!!!!! 첫날 단톡에서 싸운 둘이!!!!',l:64000,r:18000,v:2100000,rp:4000});
+    add(me==='mg'&&!good,{u:'민규지킴이',h:'mg_guard',t:'1분',x:'{mg.s} 아무도 안 고름… "아직 정리가 안 됐어" 하고 또 움',l:42000,r:9000,v:1300000,rp:3000});
+    add(!['ex','mg'].includes(me),{u:'환승파',h:'transfer_team',t:'1분',x:good?`{me.s} 환승 성공!! ${CAST[me].s}랑 나감`:`{me.s} 혼자 나감… ${CAST[me].s}는 다른 선택`,l:52000,r:12000,v:1700000,rp:3500});
+    add(fp.ex==='me'&&me!=='ex',{u:'ㅠ',h:'sad_t',t:'2분',x:'{ex.s}는 끝까지 {me.s} 골랐다…',l:70000,r:21000,v:2600000,rp:5000});
+    add(fp.mg==='hj',{u:'하준민규 X설',h:'hjmg_x',t:'2분',x:'{mg.s} {hj.s} 재회!!! "울 줄 알았어요"가 복선이었다',l:58000,r:15000,v:1900000,rp:3600});
+    add(fp.ca==='js',{u:'준서야',h:'junseo_ya',t:'3분',x:'{js.s} {ca.s} 재회. 첫날 팔짱 방향이 맞았다',l:21000,r:4000,v:600000,rp:800});
+    add(1,{u:'메기기다림',h:'waiting_catfish',t:'3분',x:'{dy.s}는 {ex.s} 골랐는데 {ex.s}는… 메기의 일주일',l:18000,r:3000,v:500000,rp:900});
+  }
+  add(1,{u:'본방사수',h:'live_watch',t:'1시간',x:`${d}화 본방 사수 성공 {tag}`,l:900+d*300,r:40,v:20000,rp:12});
+  return L;
+}

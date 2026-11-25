@@ -57,7 +57,7 @@ var APPS = {
   photos:{l:'사진', g:'<svg viewBox="0 0 62 62"><rect width="62" height="62" fill="#fff"/>'+['#f9a03f','#f6d03a','#7fd04b','#3fc4c6','#3c8cf2','#8a62e8','#e55ba2','#f2564f'].map((c,i)=>`<ellipse cx="31" cy="18" rx="6.4" ry="11.2" fill="${c}" opacity=".88" style="mix-blend-mode:multiply" transform="rotate(${i*45} 31 31)"/>`).join('')+'</svg>'},
   notes:{l:'메모', g:'<svg viewBox="0 0 62 62"><rect width="62" height="62" fill="#fff"/><rect width="62" height="16" fill="#fecf3e"/><rect y="15" width="62" height="1.5" fill="#e3b021"/><g stroke="#d9d9d9" stroke-width="1.3"><path d="M7 27h48M7 36h48M7 45h48"/></g><g fill="#b9b9b9"><circle cx="9" cy="8" r="1.6"/><circle cx="15" cy="8" r="1.6"/><circle cx="21" cy="8" r="1.6"/></g></svg>'},
   phone:{l:'전화', g:'<svg viewBox="0 0 62 62"><defs><linearGradient id="gp" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5ef777"/><stop offset="1" stop-color="#11c93d"/></linearGradient></defs><rect width="62" height="62" fill="url(#gp)"/><path d="M22.4 14.8c1.2-.4 2.6 0 3.2 1.2l2.7 5.4c.6 1.1.3 2.5-.6 3.3l-2.6 2.3c1.7 3.7 4.5 6.5 8.1 8.2l2.2-2.6c.8-.9 2.2-1.2 3.3-.6l5.4 2.7c1.2.6 1.6 2 1.2 3.2-1.3 3.7-4.8 6-8.7 5.3C24.1 46.2 16.8 38.9 14.8 28.4c-.6-3.9 1.6-7.4 5.3-8.7z" fill="#fff" transform="translate(-1 -1)"/></svg>'},
-  calendar:{l:'캘린더', g:()=>`<svg viewBox="0 0 62 62"><rect width="62" height="62" fill="#fff"/><text x="31" y="17" text-anchor="middle" font-size="10" fill="#ff3b30" font-weight="600" font-family="sans-serif">월요일</text><text x="31" y="49" text-anchor="middle" font-size="32" fill="#111" font-weight="300" font-family="sans-serif">10</text></svg>`},
+  calendar:{l:'캘린더', g:()=>`<svg viewBox="0 0 62 62"><rect width="62" height="62" fill="#fff"/><text x="31" y="17" text-anchor="middle" font-size="10" fill="#ff3b30" font-weight="600" font-family="sans-serif">${S?DATES[S.day].w:'월요일'}</text><text x="31" y="49" text-anchor="middle" font-size="32" fill="#111" font-weight="300" font-family="sans-serif">${S?DATES[S.day].d:10}</text></svg>`},
   camera:{l:'카메라', g:'<svg viewBox="0 0 62 62"><defs><linearGradient id="gc" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e8e8ec"/><stop offset="1" stop-color="#a7a7ad"/></linearGradient></defs><rect width="62" height="62" fill="url(#gc)"/><rect x="9" y="19" width="44" height="29" rx="6" fill="#2c2c2e"/><rect x="21" y="15" width="12" height="5" rx="2" fill="#2c2c2e"/><circle cx="31" cy="33.5" r="10" fill="#6e6e73"/><circle cx="31" cy="33.5" r="7" fill="#1c1c1e"/><circle cx="33" cy="31.5" r="2" fill="#5a6c8a"/><circle cx="46" cy="25" r="2" fill="#ffd60a"/></svg>'},
   clock:{l:'시계', g:()=>{ const m=(S?S.time:520); const h=(m/60)%12, mi=m%60; const ha=h*30-90, ma=mi*6-90; const r=a=>a*Math.PI/180; return `<svg viewBox="0 0 62 62"><rect width="62" height="62" fill="#000"/><circle cx="31" cy="31" r="25" fill="#fff"/>${[...Array(12)].map((_,i)=>`<text x="${31+19*Math.cos(r(i*30-60))}" y="${33.5+19*Math.sin(r(i*30-60))}" font-size="6.5" text-anchor="middle" font-family="sans-serif" fill="#000">${i+1}</text>`).join('')}<path d="M31 31L${31+11*Math.cos(r(ha))} ${31+11*Math.sin(r(ha))}" stroke="#000" stroke-width="2.6" stroke-linecap="round"/><path d="M31 31L${31+17*Math.cos(r(ma))} ${31+17*Math.sin(r(ma))}" stroke="#000" stroke-width="1.8" stroke-linecap="round"/><circle cx="31" cy="31" r="2" fill="#ff9500"/></svg>`; }},
   weather:{l:'날씨', g:'<svg viewBox="0 0 62 62"><defs><linearGradient id="gw" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3d9cff"/><stop offset="1" stop-color="#1e6ad8"/></linearGradient></defs><rect width="62" height="62" fill="url(#gw)"/><circle cx="25" cy="25" r="10" fill="#ffd60a"/><path d="M22 46h22a7.5 7.5 0 000-15 10.5 10.5 0 00-19.5 3.5A6 6 0 0022 46z" fill="#fff"/></svg>'},
@@ -87,7 +87,7 @@ var SAVES=loadAll();
 var S=null;
 function save(){ if(!S) return; S.savedAt=Date.now(); SAVES[S.name]=S; saveAll(SAVES); }
 function freshState(name,pin){
-  const chats=JSON.parse(JSON.stringify(HISTORY)); let mid=1, t=1;
+  const chats=JSON.parse(JSON.stringify(HISTORY)); chats.dy={msgs:[]}; let mid=1, t=1;
   for(const k of ['ec','sis','ex','pd']) chats[k].lastAt=t++;
   for(const k in chats){ chats[k].unread=0; chats[k].msgs.forEach(m=>{ m.id=mid++; if(m.x) m.x=T(m.x); }); }
   return {name,pin,day:1,time:8*60+40,battery:82,focus:false,mid,
@@ -98,7 +98,8 @@ function freshState(name,pin){
 }
 var CHATS = {
   pd:{t:()=>T('{pd}'),k:'pd'},
-  house:{t:()=>T('{pd.s} · 하우스'),k:'house',group:true,n:8},
+  house:{t:()=>T('{pd.s} · 하우스'),k:'house',group:true,get n(){return S&&S.day>=4?9:8;}},
+  dy:{t:()=>T('{dy}'),k:'dy'},
   mg:{t:()=>T('{mg}'),k:'mg'}, hj:{t:()=>T('{hj}'),k:'hj'}, js:{t:()=>T('{js}'),k:'js'}, so:{t:()=>T('{so}'),k:'so'},
   ex:{t:()=>T(S.exName),k:'ex'},
   sis:{t:()=>T('{sis}'),k:'sis',outside:true}, ec:{t:()=>T('{ec}'),k:'ec',outside:true},
@@ -130,6 +131,8 @@ async function exec(st,tid){
   if(st.start){ startThread(st.start); return; }
   if(st.sleep){ await sleep(st.sleep); return; }
   if(st.do){ st.do(); render(); return; }
+  if(st.if && st.go){ return st.if()?LABELS[tid][st.go]:undefined; }
+  if(st.if && !st.if()) return;
   if(st.go){ return LABELS[tid][st.go]; }
   if(st.sys){ deliver(st.sys[0],{sys:T(st.sys[1])}); return; }
   if(st.msg){
@@ -183,7 +186,8 @@ function countDown(m){
 function markGroupRead(){ S.chats.house.msgs.forEach(x=>{ if(x.f==='me') x.rc=0; }); render(); }
 function closeOutside(){ for(const k in CHATS){ if(CHATS[k].outside&&S.pend[k]){ const th=S.threads[S.pend[k].tid]; th.status='done'; th.i=1e9; delete S.pend[k]; } } }
 function deliver(chat,m){
-  const c=S.chats[chat]; m.id=S.mid++; c.msgs.push(m); if(m.f||m.sys) c.lastAt=Date.now();
+  const c=S.chats[chat]; if(S.day>1&&(m.f||m.sys)&&c.dayMark!==S.day){ c.dayMark=S.day; c.msgs.push({d:DATES[S.day].full,id:S.mid++}); }
+  m.id=S.mid++; c.msgs.push(m); if(m.f||m.sys) c.lastAt=Date.now();
   if(m.f && m.f!=='me'){
     if(!isViewing(chat)){ c.unread=(c.unread||0)+1; notify(chat,m); }
     if(chat!=='house') c.msgs.forEach(x=>{ if(x.f==='me') x.rc=0; });
@@ -200,22 +204,16 @@ function addClue(id){
 }
 function addSide(id){ S.side[id]=true; save(); }
 function receiveSms(){
-  const inbox=[
-    {id:'a',from:'mg',x:'소파 끝자리 말고 내일은 제 옆에 앉아요. 비워둘게요.'},
-    {id:'b',from:'ex',x:'에어컨 너무 세게 틀고 자지 마요. 여름 감기 잘 걸리잖아요.'},
-  ];
-  if(S.st.js>=2 || (S.sms.sent&&S.sms.sent.to==='js')) inbox.push({id:'c',from:'js',x:'룸메라서 다행이에요. 내일 아침은 제가 할게요.'});
-  else if(S.st.so>=2) inbox.push({id:'c',from:'so',x:'오늘 처음 본 사람 중에 제일 좋았어요!! (누군지 맞혀보세요)'});
+  const inbox=(SMS_IN[S.day]||SMS_IN[1])();
   inbox.sort(()=>Math.random()-.5);
-  inbox.forEach((m,i)=>{ m.n=i+1; m.read=false; m.tm=fmtK(S.time); });
+  inbox.forEach((m,i)=>{ m.id=S.day+'_'+i; m.n=i+1; m.read=false; m.tm=fmtK(S.time); });
   S.sms.inbox=inbox; save();
   notifyRaw('sms','메시지',`발신자 정보 없음 외 ${inbox.length-1}명`,'새 문자 '+inbox.length+'통');
   render();
 }
 function npcSms(){
-  const r=[{f:'mg',to:'me'},{f:'ex',to:'me'},{f:'hj',to:'mg'},{f:'ca',to:'ex'},
-    {f:'js',to:S.sms.inbox.some(m=>m.from==='js')?'me':'ca'},{f:'so',to:S.sms.inbox.some(m=>m.from==='so')?'me':'hj'},{f:'cb',to:'js'}];
-  if(S.sms.sent) r.unshift({f:'me',to:S.sms.sent.to});
+  const r=(S.day===1?SMS_NPC[1]:(SMS_NPC[S.day]||SMS_NPC.d))();
+  if(S.sms.sent&&S.day<7) r.unshift({f:'me',to:S.sms.sent.to});
   return r;
 }
 function animatePoll(){
@@ -283,7 +281,7 @@ function vSetup(){
     <div style="width:72px;height:72px;border-radius:17px;overflow:hidden;box-shadow:0 4px 14px rgba(0,0,0,.15)">${miniIcon('talk')}</div>
     <h1>${esc(SHOW.name)}</h1>
     <p>헤어진 지 3개월.<br>7년을 함께한 사람이 같은 집에 있다.</p>
-    ${names.length?`<div class="profs"><div class="gl" style="padding:0 4px 8px">이어하기</div>${names.map(n=>{const s=SAVES[n];return `<button class="li" data-a="prof" data-n="${esc(n)}"><div class="av c" style="width:40px;height:40px;background:hsl(${hue(n)} 50% 55%);font-size:16px">${esc(n[0])}</div><div class="mid"><b>${esc(n)}</b><span>${s.ended?'1일차 끝':fmtK(s.time)+'에서 멈춤'} · 단서 ${Object.keys(s.clues||{}).length}개</span></div><span class="chev">›</span></button>`}).join('')}</div>`:''}
+    ${names.length?`<div class="profs"><div class="gl" style="padding:0 4px 8px">이어하기</div>${names.map(n=>{const s=SAVES[n];return `<button class="li" data-a="prof" data-n="${esc(n)}"><div class="av c" style="width:40px;height:40px;background:hsl(${hue(n)} 50% 55%);font-size:16px">${esc(n[0])}</div><div class="mid"><b>${esc(n)}</b><span>${s.ending?'엔딩 봄':(s.day||1)+'일차 · '+(s.ended?'끝':fmtK(s.time))} · 단서 ${Object.keys(s.clues||{}).length}개</span></div><span class="chev">›</span></button>`}).join('')}</div>`:''}
     <div style="width:100%;margin-top:${names.length?18:4}px">
       <input id="nm" maxlength="10" placeholder="플레이어 이름" autocomplete="off">
       <button class="big" data-a="newp">새로 시작</button>
@@ -314,8 +312,8 @@ function pinKey(k){
 function shake(){ const d=$('#pdots'); d&&d.classList.add('shake'); if(navigator.vibrate) try{navigator.vibrate(80)}catch(e){} setTimeout(()=>{pinBuf='';render();},420); }
 function continueMenu(){
   V={screen:'setup'}; render();
-  showAlert(S.name, S.ended?'1일차를 끝냈어요.':`${fmtK(S.time)}에서 멈췄어요.`,
-    [['처음부터',()=>{const n=S.name,p=S.pin;S=freshState(n,p);save();bootGame(true);}],[S.ended?'반응 보기':'이어하기',()=>{ bootGame(false); if(S.ended) openTw(true); }]]);
+  showAlert(S.name, S.ending?'엔딩을 봤어요.':S.ended?`${S.day}일차를 끝냈어요.`:`${S.day}일차 ${fmtK(S.time)}에서 멈췄어요.`,
+    [['처음부터',()=>{const n=S.name,p=S.pin;S=freshState(n,p);save();bootGame(true);}],[S.ended?(S.ending?'엔딩 다시 보기':'반응 보기'):'이어하기',()=>{ bootGame(false); if(S.ending) showEnding(); else if(S.ended) openTw(true); }]]);
 }
 function bootGame(fresh){
   GEN++; running={}; typingIn=null; TYPE=null; LOCAL_SHEET=null;
@@ -337,14 +335,14 @@ function vLock(){
   const ns=notifList(); const show=ns.slice(0,4); const more=ns.length-show.length;
   return `<div class="view" id="lock" style="${ASSETS.lockWallpaper?`background-image:url('${ASSETS.lockWallpaper}')`:''}">
     <div class="lk">${ic.lock}</div>
-    <div class="dt">${esc(SHOW.date)}</div><div class="tm">${fmtT(S.time)}</div>
+    <div class="dt">8월 ${DATES[S.day].d}일 ${DATES[S.day].w}</div><div class="tm">${fmtT(S.time)}</div>
     <div class="ns">${ns.length?`<div class="nh"><span>알림 센터</span></div>`:''}${show.map((n,i)=>`<button class="ln ${i===show.length-1&&more>0?'stack':''}" data-a="lnotif" data-k="${n.k}"><div class="a">${miniIcon(n.app)}</div><div class="m"><b>${esc(n.title)}<span>${esc(n.tm)}</span></b><div>${esc(n.x)}</div>${n.n>1?`<div style="opacity:.7;font-size:13px">추가 알림 ${n.n-1}개</div>`:''}</div></button>`).join('')}${more>0?`<div style="text-align:center;font-size:13px;opacity:.8;margin-top:6px">알림 ${more}개 더</div>`:''}</div>
     <div class="bot"><button class="ci" data-a="toast" data-t="촬영 중에는 손전등을 켤 수 없어요">${ic.torch}</button><button class="ci" data-a="toast" data-t="하우스 안 촬영은 제작진만 해요">${ic.cam}</button></div>
     <div class="sw">쓸어올려 열기</div>
     ${homeBar(true)}
   </div>`;
 }
-function msgPreview(m){ if(m.kind==='photo') return '사진'; if(m.kind==='letter') return '파일: X 소개서.pdf'; if(m.kind==='poll') return '투표: 오늘 저녁 뭐 먹어요?'; if(m.del) return '삭제된 메시지입니다.'; return m.x; }
+function msgPreview(m){ if(m.kind==='info') return '출연자 정보 공개'; if(m.kind==='photo') return '사진'; if(m.kind==='letter') return '파일: X 소개서.pdf'; if(m.kind==='poll') return '투표: 오늘 저녁 뭐 먹어요?'; if(m.del) return '삭제된 메시지입니다.'; return m.x; }
 
 /* ---------- 홈 ---------- */
 function talkUnread(){ let n=0; for(const k in S.chats){ if(CHATS[k].outside&&S.focus) continue; n+=S.chats[k].unread||0; } return n; }
@@ -352,11 +350,11 @@ function vHome(){
   const badge={talk:talkUnread(),sms:S.sms.inbox.filter(m=>!m.read).length+(S.flags.smsOpen&&!S.sms.sent?1:0)};
   const one=k=>`<button class="app" data-a="open" data-k="${k}">${appIcon(k)}${badge[k]?`<span class="badge" style="position:absolute;top:-6px;right:0">${badge[k]}</span>`:''}${APPS[k].l}</button>`;
   const grid=['photos','notes','insta','camera','clock','music','maps','voice','settings'];
-  const ev=S.flags.inHouse?['하우스 생활 1일차','오늘']:['환승로그 입소','오전 10:30'];
+  const ev=S.day>1?[`하우스 생활 ${S.day}일차`,S.day===7?'최종 선택':'오늘']:S.flags.inHouse?['하우스 생활 1일차','오늘']:[SHOW.name+' 입소','오전 10:30'];
   return `<div class="view" id="home" style="${ASSETS.homeWallpaper?`background-image:url('${ASSETS.homeWallpaper}')`:''}">
     <div class="hwrap">
       <div class="widgets">
-        <button class="wg cal" data-a="open" data-k="calendar"><small>월요일</small><div class="d">10</div><div class="e">${esc(ev[0])}<span>${esc(ev[1])}</span></div></button>
+        <button class="wg cal" data-a="open" data-k="calendar"><small>${DATES[S.day].w}</small><div class="d">${DATES[S.day].d}</div><div class="e">${esc(ev[0])}<span>${esc(ev[1])}</span></div></button>
         <button class="wg wx" data-a="open" data-k="weather"><b>${esc(SHOW.place)} ➤</b><div class="t">${S.time<18*60?29:24}°</div><small>${S.time<19*60?'☀︎ 맑음':'☾ 맑음'}<br>최고:31° 최저:22°</small></button>
       </div>
       <div class="wlab"><span>캘린더</span><span>날씨</span></div>
@@ -392,7 +390,7 @@ function vApp(){
 
 /* ---------- 톡 ---------- */
 function friendsList(){
-  const base=['pd','sis','ec']; const house=S.flags.inHouse?['ex','mg','hj','js','so','ca','cb']:['ex'];
+  const base=['pd','sis','ec']; const house=S.flags.inHouse?['ex','mg','hj','js','so','ca','cb'].concat(S.day>=4?['dy']:[]):['ex'];
   return {fav:S.exFav?['ex']:[], all:[...new Set([...house,...base])]};
 }
 function vTalkHome(){
@@ -459,6 +457,7 @@ function vChat(k){
     if(m.kind==='photo') inner=`<div class="card" data-a="photoMsg" data-p="${m.data}"><div class="ph" style="background-image:url('${photoSrc(m.data)}')"></div></div>`;
     else if(m.kind==='letter') inner=`<div class="letter-card" data-a="letter" data-l="${m.data}"><b>${m.data==='mine'?'X 소개서 (제출본).pdf':'X 소개서.pdf'}</b><span>${m.data==='mine'?'유효기간: ~ 2026. 8. 21.':'열람 가능: '+esc(CAST.me.s)+'님만'}</span></div>`;
     else if(m.kind==='poll') inner=pollCard();
+    else if(m.kind==='info') inner=infoCard();
     else if(m.del) inner=`<div class="bub del" data-a="delmsg">삭제된 메시지입니다.</div>`;
     else inner=`<div class="bub" data-mid="${m.id}">${esc(m.x)}${m.rx&&Object.keys(m.rx).length?`<span class="rxs">${Object.values(m.rx).join('')}${Object.keys(m.rx).length>1?' '+Object.keys(m.rx).length:''}</span>`:''}</div>`;
     const rc = me && m.rc>0 ? `<span class="rc" data-a="rc">${m.rc}</span>`:'';
@@ -480,7 +479,7 @@ function composer(k){
   const st=optOf(k);
   if(st){
     const p=S.pend[k]; const left=p.dl?Math.max(0,Math.round((p.dl-Date.now())/1000)):null;
-    const sil=st.o.map((o,i)=>[o,i]).filter(([o])=>o.silent); const say=st.o.map((o,i)=>[o,i]).filter(([o])=>!o.silent);
+    const vis=st.o.map((o,i)=>[o,i]).filter(([o])=>!o.if||o.if()); const sil=vis.filter(([o])=>o.silent); const say=vis.filter(([o])=>!o.silent);
     const typed=TYPE&&TYPE.chat===k;
     return `<div class="composer">
       <div class="cbar"><button class="plus">${ic.plus}</button><div class="field" id="tf">${typed?esc(TYPE.full.slice(0,TYPE.n))+'<span class="caret"></span>':'<span class="ph">메시지 입력</span>'}</div><button class="send ${typed&&TYPE.n>=TYPE.full.length?'on':''}" id="sendbtn" data-a="send">${ic.up}</button></div>
@@ -516,6 +515,10 @@ function afterChatOpen(k){
     setTimeout(()=>{ if(g!==GEN||!isViewing('ex')) {S.flags.exTypingShown=false;return;} S.flags.exTypingNow=true; render(); setTimeout(()=>{ S.flags.exTypingNow=false; render(); addClue('typing'); },3800); },1500);
   }
 }
+function infoCard(){
+  const rows=INFO.map(([k,a,j])=>`<div style="display:flex;justify-content:space-between;gap:10px;padding:5px 0;border-bottom:.5px solid #eee;font-size:14px"><b style="font-weight:600">${esc(CAST[k].n)}</b><span style="color:#555">${a} · ${esc(j)}</span></div>`).join('');
+  return `<div class="poll" style="width:260px"><b>출연자 정보 공개</b>${rows}</div>`;
+}
 function pollCard(){
   const P=S.poll.dinner||{}; const opts=[['kimchi','김치찌개'],['pasta','파스타'],['pork','삼겹살']];
   const votes=P.votes||{kimchi:[],pasta:[],pork:[]}; const tot=Object.values(votes).reduce((a,b)=>a+b.length,0)||1;
@@ -529,11 +532,11 @@ function vSms(){
   if(sub && sub.startsWith('in:')){
     const m=S.sms.inbox.find(x=>x.id===sub.slice(3)); if(!m.read){ m.read=true; save(); }
     return `<div class="view ims">
-      <div class="nav"><div class="row"><button class="bk" data-a="smsList" data-back>${ic.back}</button><div class="tt"></div><div class="rb"></div></div><div class="imhead"><div class="av c" style="background:linear-gradient(#a5a8b0,#868991)"><svg width="30" height="30" viewBox="0 0 26 26" fill="#fff"><circle cx="13" cy="9" r="5"/><path d="M3.5 23.5c1-5.5 4.8-8 9.5-8s8.5 2.5 9.5 8z"/></svg></div>발신자 정보 없음 ›</div></div>
+      <div class="nav"><div class="row"><button class="bk" data-a="smsList" data-back>${ic.back}</button><div class="tt"></div><div class="rb"></div></div><div class="imhead">${m.reveal?avatar(m.from,'av c')+esc(CAST[m.from].n):`<div class="av c" style="background:linear-gradient(#a5a8b0,#868991)"><svg width="30" height="30" viewBox="0 0 26 26" fill="#fff"><circle cx="13" cy="9" r="5"/><path d="M3.5 23.5c1-5.5 4.8-8 9.5-8s8.5 2.5 9.5 8z"/></svg></div>발신자 정보 없음`} ›</div></div>
       <div class="chatbody"><div class="cin"><div class="imtime"><b>문자 메시지</b><br>오늘 ${esc(m.tm)}</div>
       <div class="mrow"><div class="mcol" style="max-width:78%"><div class="bub tail">${esc(T(m.x))}</div></div></div>
       ${m.guess?`<div class="imtime">내 추측: ${esc(CAST[m.guess].n)}</div>`:''}</div></div>
-      <div class="composer"><div class="idlebar" style="flex-direction:column;align-items:stretch"><button class="opt" data-a="guess" data-id="${m.id}" style="text-align:center">${m.guess?'추측 바꾸기':'보낸 사람 추측하기'}</button><div style="text-align:center;color:#999;font-size:12.5px">익명 문자에는 답장할 수 없어요</div></div></div>${homeBar()}</div>`;
+      ${m.reveal?'<div class="composer"><div class="locked">최종 선택 결과</div></div>':''}<div class="composer" style="${m.reveal?'display:none':''}"><div class="idlebar" style="flex-direction:column;align-items:stretch"><button class="opt" data-a="guess" data-id="${m.id}" style="text-align:center">${m.guess?'추측 바꾸기':'보낸 사람 추측하기'}</button><div style="text-align:center;color:#999;font-size:12.5px">익명 문자에는 답장할 수 없어요</div></div></div>${homeBar()}</div>`;
   }
   if(sub==='sent'){
     const s=S.sms.sent;
@@ -543,7 +546,8 @@ function vSms(){
   }
   const rows=[];
   S.sms.inbox.forEach(m=>rows.push(`<button class="li" data-a="smsIn" data-id="${m.id}">${!m.read?'<i class="dot"></i>':'<i style="width:2px"></i>'}<div class="av c" style="background:linear-gradient(#a5a8b0,#868991);width:44px;height:44px"><svg width="26" height="26" viewBox="0 0 26 26" fill="#fff"><circle cx="13" cy="9" r="5"/><path d="M3.5 23.5c1-5.5 4.8-8 9.5-8s8.5 2.5 9.5 8z"/></svg></div><div class="mid"><b>익명 ${m.n}</b><span style="white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">${esc(T(m.x))}</span></div><div class="rt">${esc(m.tm.replace(/^(오전|오후) /,''))} ›</div></button>`));
-  if(S.sms.sent) rows.push(`<button class="li" data-a="smsSent"><i style="width:2px"></i>${avatar(S.sms.sent.to,'av c','width:44px;height:44px')}<div class="mid"><b>${esc(CAST[S.sms.sent.to].n)}</b><span>${esc(S.sms.sent.x)}</span></div><div class="rt">${esc(S.sms.sent.tm.replace(/^(오전|오후) /,''))} ›</div></button>`);
+  (S.smsHist||[]).slice().reverse().forEach(h=>{ rows.push(`<div class="gl" style="padding:14px 16px 4px">${h.day}일차</div>`); (h.inbox||[]).forEach(m=>rows.push(`<div class="li" style="opacity:.75"><i style="width:2px"></i><div class="av c" style="background:#b8bac0;width:40px;height:40px"></div><div class="mid"><b>익명 ${m.n}${m.guess?' · 추측: '+esc(CAST[m.guess].s):''}</b><span>${esc(T(m.x))}</span></div></div>`)); if(h.sent) rows.push(`<div class="li" style="opacity:.75"><i style="width:2px"></i>${avatar(h.sent.to,'av c','width:40px;height:40px')}<div class="mid"><b>${esc(CAST[h.sent.to].n)}</b><span>${esc(h.sent.x)}</span></div></div>`); });
+  if(S.sms.sent) rows.unshift(`<button class="li" data-a="smsSent"><i style="width:2px"></i>${avatar(S.sms.sent.to,'av c','width:44px;height:44px')}<div class="mid"><b>${esc(CAST[S.sms.sent.to].n)}</b><span>${esc(S.sms.sent.x)}</span></div><div class="rt">${esc(S.sms.sent.tm.replace(/^(오전|오후) /,''))} ›</div></button>`);
   return `<div class="view">
     <div class="nav big"><div class="row"><button class="bk" data-a="home" data-back>${ic.back}</button><div class="tt">메시지</div><div class="rb">${S.flags.smsOpen&&!S.sms.sent?`<button data-a="compose">${ic.compose}</button>`:''}</div></div><h2>메시지</h2></div>
     <div class="sf"><div class="bar" style="margin:0 16px 8px">${ic.search} 검색</div></div>
@@ -567,7 +571,7 @@ function vCompose(){
 
 /* ---------- 사진 ---------- */
 var PALS=[['#f6c28b','#e07a5f'],['#9ad1d4','#3d5a80'],['#cdb4db','#6d597a'],['#ffd6a5','#b5838d'],['#a8dadc','#457b9d'],['#f1faee','#e63946'],['#b7e4c7','#2d6a4f'],['#ffe5ec','#fb6f92']];
-function photoSrc(k){ if(ASSETS.photos[k]) return ASSETS.photos[k]; return svgURI(PH[k]?PH[k]():PH._(k)); }
+function photoSrc(k){ if(ASSETS.photos[k]) return ASSETS.photos[k]; const f=PH[k]||(window.PH_EXTRA&&PH_EXTRA[k]); return svgURI(f?f():PH._(k)); }
 var PH={
   _:(k)=>{ const h=hue(k); const [a,b]=PALS[h%PALS.length];
     return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${a}"/><stop offset="1" stop-color="${b}"/></linearGradient></defs><rect width="300" height="300" fill="url(#g)"/><circle cx="${60+h%180}" cy="${70+h%60}" r="${30+h%30}" fill="#fff" opacity=".25"/><rect y="200" width="300" height="100" fill="#000" opacity=".12"/></svg>`; },
@@ -594,6 +598,7 @@ var PCAP={
   r1:['오늘 오전 7:58','캐리어. 너무 많이 쌌나'],r2:['어제','작업실 모니터. 2절 비어 있음'],r3:['어제','{ec.s|이가} 보낸 고양이'],r4:['8월 7일','아이스 아메리카노'],r5:['8월 5일','누나네 강아지'],r6:['8월 1일','스크린샷: 출연 계약서'],
   r7:['7월 28일','한강'],r8:['7월 21일','스크린샷: 출연 확정'],r9:['7월 18일','작업실 창문, 비'],r10:['7월 2일','믹스 체크 메모'],r11:['6월 20일','편의점 김밥'],r12:['6월 3일','이삿짐 박스 두 개'],
   shot1:['5월 2일 · 스크린샷','{ex.s}의 친한 친구 스토리. 종로, 불 켜진 쇼윈도. "D-17".\n그땐 무슨 뜻인지 몰랐다.'],
+  xroom:[`8월 ${DATES[3].d}일 · 추억 공간`,'물건을 눌러봐요'],
   sleep:['7월 17일 · 삭제됨','잠든 {ex.s}. 헤어지기 전 사진. 지운 게 3주 전.'],group:['오늘 오후 2:10','사람을 눌러봐요'],
 };
 function albumItems(a){ if(a==='shots') return ['shot1','r6','r8']; if(a==='us') return ALBUM_US.map(x=>x[0]); if(a==='recent') return RECENT; if(a==='house') return S.flags.groupPosted?['group']:[]; if(a==='trash') return (S.flags.restored?[]:['sleep']).concat(S.album==='deleted'?ALBUM_US.map(x=>x[0]):[]); if(a==='fav') return Object.keys(S.fav).filter(k=>S.fav[k]); return []; }
@@ -631,12 +636,13 @@ function vViewer(k){
   const meta=PMETA[cur];
   let slides=items.map((key,i)=>{
     let spots='';
-    if(key==='group') spots=GROUP_SPOTS.map((p,j)=>`<button class="hs ${V.spot===j?'found':''}" style="left:${p.x}%;top:${p.y}%" data-a="spot" data-i="${j}" aria-label="${esc(CAST[p.who].n)}"></button>`).join('');
-    return `<div class="slide"><div class="pic" data-a="vtap" style="background-image:url('${photoSrc(key)}');aspect-ratio:${key==='group'?'4/3':'1'}">${spots}</div></div>`;
+    const SP=(window.SPOTS&&SPOTS[key])||(key==='group'?GROUP_SPOTS:null); if(SP) spots=SP.map((p,j)=>`<button class="hs ${V.spot===j?'found':''}" style="left:${p.x}%;top:${p.y}%" data-a="spot" data-i="${j}" aria-label="${esc(p.who?CAST[p.who].n:'물건')}"></button>`).join('');
+    return `<div class="slide"><div class="pic" data-a="vtap" style="background-image:url('${photoSrc(key)}');aspect-ratio:${key==='group'||key==='xroom'?'4/3':'1'}">${spots}</div></div>`;
   }).join('');
   if(cur==='group' && !S.flags.sawGroup){ S.flags.sawGroup=true; save(); }
   if(cur==='shot1' && !S.clues.story) setTimeout(()=>addClue('story'),900);
-  const capText = cur==='group'&&V.spot!=null ? T(GROUP_SPOTS[V.spot].t) : T(cap[1]);
+  const SPc=(window.SPOTS&&SPOTS[cur]); const capText = SPc&&V.spot!=null ? T(SPc[V.spot].t) : T(cap[1]);
+  if(cur==='xroom' && !S.flags.sawXroom){ S.flags.sawXroom=true; save(); }
   return `<div class="viewer ${V.dark?'dark':''}">
     <div class="vt"><button data-a="pvBack" data-back>${ic.back}</button><div class="ttl" id="vttl"><b>${esc(cap[0])}</b></div><button data-a="toast" data-t="편집은 할 수 없어요">편집</button></div>
     <div class="strip" id="strip">${slides}</div>
@@ -657,7 +663,7 @@ function vNotes(){
     {id:'box',t:'정리할 것',d:'5월 20일',p:'{ex.s} 짐 → 박스 두 개'},
     {id:'pack',t:'입소 준비물',d:'8월 9일',p:'충전기, 편한 옷, 수면안대'},
   ];
-  if(S.flags.memoOpen) notes.unshift({id:'today',t:S.notes.today?S.notes.today.split('\n')[0]:'새로운 메모',d:'오늘',p:S.notes.today?S.notes.today.split('\n')[1]||'':'추가 텍스트 없음'});
+  if(S.flags.memoOpen){ const n=S.notes; notes.unshift({id:'today',t:n.title||'새로운 메모',d:`8월 ${DATES[1].d}일`,p:(n.lines&&n.lines[0])||'추가 텍스트 없음'}); }
   if(!sub) return `<div class="view notes">${navBar('가사','home',{big:true,backLabel:' 폴더'})}
     <div class="scrl"><div class="in"><div class="sf"><div class="bar">${ic.search} 검색</div></div><div class="gl" style="padding:8px 32px">${S.flags.memoOpen?'오늘':'지난 30일'}</div><div class="group nlist" style="background:#f6f6f8">${notes.map(n=>`<button class="li" data-a="note" data-k="${n.id}" style="background:#f6f6f8"><b>${esc(T(n.t))}</b><span>${esc(n.d)}  <span style="display:inline;color:#888">${esc(T(n.p))}</span></span></button>`).join('')}</div>
     <div class="gf" style="text-align:center;margin-top:0">메모 ${notes.length}개</div></div></div>${homeBar()}</div>`;
@@ -700,13 +706,11 @@ ${V.ver?`<div class="ver"><b>이전 버전 · 5월 2일 오후 11:40</b>
 ☐ 감기약 (여름 감기 조심)
 ☐ 편지 <span style="color:#999">← 가져가지 말 것</span>`;
   } else if(sub==='today'){
-    const t=S.notes.today;
-    if(t) body=`<div class="nd">오늘 ${fmtK(S.time)}</div><h3>${esc(t.split('\n')[0])}</h3>${esc(t.split('\n').slice(1).join('\n'))}`;
-    else {
-      const step=S.notes.l1?2:1; const opts=step===1?LYRIC_L1:LYRIC_L2();
-      body=`<div class="nd">오늘 ${fmtK(S.time)}</div>${S.notes.l1?`<h3>${esc(S.notes.l1)}</h3>`:''}<span id="lyricLine">${lyricAnim?'':''}</span><span class="caret" style="background:#e1a600"></span>
-<div class="opts" style="margin-top:26px;font-size:15px">${lyricAnim?'':opts.map((o,i)=>`<button class="opt" data-a="lyric" data-i="${i}" style="font-family:inherit">${esc(o)}</button>`).join('')}</div>`;
-    }
+    const n=S.notes; const lines=n.lines||[];
+    const need = !n.title || (lines.length<2 && S.flags.memoOpen) || (lines.length<4 && S.flags.memo6Open);
+    const opts=need?LYRIC_OPTS():[];
+    body=`<div class="nd">8월 ${DATES[1].d}일${lines.length>2?` · 8월 ${DATES[6].d}일 수정`:''}</div><h3>${n.title?esc(n.title):'<span style="color:#ccc">제목</span>'}</h3>${lines.length>0?'[2절]\n':''}${lines.map((l,i)=>(i===2?'\n':'')+esc(l)).join('\n')}${need&&n.title?'\n<span id="lyricLine"></span><span class="caret" style="background:#e1a600"></span>':''}
+${need&&!lyricAnim?`<div class="gl" style="padding:18px 0 6px;font-size:13px">${!n.title?'곡 제목부터':'다음 줄'}</div><div class="opts" style="font-size:15px">${opts.map((o,i)=>`<button class="opt" data-a="lyric" data-i="${i}" style="font-family:inherit">${esc(o)}</button>`).join('')}</div>`:''}`;
   }
   return `<div class="view notes">${navBar('','notes',{backLabel:' 가사',right:`<button data-a="toast" data-t="공유할 수 없어요">${ic.share}</button>`})}<div class="notebody">${body}</div>${homeBar()}</div>`;
 }
@@ -749,13 +753,13 @@ function vContactEx(){
 /* ---------- 캘린더 ---------- */
 function vCal(){
   const m=V.mon||'8';
-  const start=m==='5'?5:6;
-  const ev=m==='5'?{8:1,19:1,2:1,9:0}:{10:1,7:1,14:1};
-  const sel=V.day||(m==='5'?19:10);
+  const start=m==='5'?5:((('일월화수목금토'.indexOf(DATES[1].w[0])-(DATES[1].d-1))%7)+7)%7;
+  const ev=m==='5'?{8:1,19:1,2:1,9:0}:{[DATES[1].d]:1,[DATES[1].d-3]:1,[DATES[1].d+4]:1};
+  const sel=V.day||(m==='5'?19:DATES[S.day].d);
   const list=m==='5'?({19:[['#ff2d55','8주년','하루 종일 · 캘린더: 우리'],['#0a84ff','종로','오후 6:00 · 만든 사람: '+CAST.ex.s,'cal'],['#0a84ff','라온 (2인 예약)','오후 7:30 · 만든 사람: '+CAST.ex.s,'cal']],8:[['#ff9500','믹스 마감','하루 종일']],2:[['#34c759','작업실 미팅','오후 3:00']]}[sel]||[])
-    :({10:[['#af52de','환승로그 입소','오전 10:30 · '+SHOW.place]],7:[['#ff9500','데모 2절 마감 (연기됨)','하루 종일']],14:[['#ff9500',CAST.ec.s+' 마감','하루 종일']]}[sel]||[]);
+    :({[DATES[1].d]:[['#af52de',SHOW.name+' 입소','오전 10:30 · '+SHOW.place]],[DATES[1].d-3]:[['#ff9500','데모 2절 마감 (연기됨)','하루 종일']],[DATES[1].d+4]:[['#ff9500',CAST.ec.s+' 마감','하루 종일']]}[sel]||[]);
   let cells=''; for(let i=0;i<start;i++) cells+='<i></i>';
-  for(let d=1;d<=31;d++) cells+=`<button class="${ev[d]?'ev':''} ${d===sel?'sel':''} ${m==='8'&&d===10?'today':''}" data-a="day" data-d="${d}"><i>${d}</i></button>`;
+  for(let d=1;d<=31;d++) cells+=`<button class="${ev[d]?'ev':''} ${d===sel?'sel':''} ${m==='8'&&d===DATES[S.day].d?'today':''}" data-a="day" data-d="${d}"><i>${d}</i></button>`;
   return `<div class="view cal">
     <div class="nav" style="background:#fff"><div class="row"><button class="bk" data-a="home" data-back style="color:var(--red)">${ic.back} 2026년</button><div class="tt"></div><div class="rb" style="color:var(--red)"><button data-a="mon" data-m="${m==='8'?'5':'8'}" style="font-size:15px">${m==='8'?'‹ 5월로':'8월로 ›'}</button></div></div><h2>${m}월</h2></div>
     <div class="scrl"><div class="mgrid">${['일','월','화','수','목','금','토'].map(d=>`<span>${d}</span>`).join('')}${cells}</div>
@@ -791,7 +795,7 @@ function vMusic(){
   </div></div>${homeBar()}</div>`;
 }
 function vSafari(){
-  const q=['결혼 무서운 거 정상인가요','헤어지고 3개월','환승로그 시즌1 최종 선택','여름 감기 빨리 낫는 법','종로 반지'];
+  const q=['결혼 무서운 거 정상인가요','헤어지고 3개월',SHOW.name+' 시즌1 최종 선택','여름 감기 빨리 낫는 법','종로 반지'];
   return `<div class="view" style="background:#f2f2f7"><div style="height:56px"></div><div class="scrl"><div class="in" style="padding:10px 16px">
     <div style="font-size:21px;font-weight:700;margin:10px 0">즐겨찾기</div>
     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;text-align:center;font-size:12px">${['포털','메일','음원','작업실 클라우드'].map((l,i)=>`<div><div style="width:60px;height:60px;margin:0 auto 5px;border-radius:13px;background:hsl(${i*80} 60% 55%);display:grid;place-items:center;color:#fff;font-size:22px;font-weight:700">${l[0]}</div>${l}</div>`).join('')}</div>
@@ -855,7 +859,7 @@ function renderSheet(){
   const st=LOCAL_SHEET||SCRIPT[p.tid][p.i].sheet;
   const sig=LOCAL_SHEET?('L'+LOCAL_SHEET.q):('P'+p.tid+p.i); if(el&&el.dataset.sig===sig) return; if(el) el.remove();
   const d=document.createElement('div'); d.id='sheet'; d.dataset.sig=sig;
-  d.innerHTML=`<div class="sh"><div class="q ${st.inner?'inner':''}">${st.cap?`<small>${esc(T(st.cap))}</small>`:''}${esc(T(st.q))}</div><div class="opts">${st.o.map((o,i)=>`<button class="opt ${o.silent?'ghost':''}" data-a="${LOCAL_SHEET?'lsheet':'sheet'}" data-i="${i}">${esc(T(o.l))}</button>`).join('')}</div></div>`;
+  d.innerHTML=`<div class="sh"><div class="q ${st.inner?'inner':''}">${st.cap?`<small>${esc(T(st.cap))}</small>`:''}${esc(T(st.q))}</div><div class="opts">${st.o.map((o,i)=>(o.if&&!o.if())?'':`<button class="opt ${o.silent?'ghost':''}" data-a="${LOCAL_SHEET?'lsheet':'sheet'}" data-i="${i}">${esc(T(o.l))}</button>`).join('')}</div></div>`;
   $('#screen').appendChild(d);
 }
 function localSheet(o){ LOCAL_SHEET=o; renderSheet(); }
@@ -940,4 +944,10 @@ setInterval(()=>{ if(!S||S.ended||V.screen==='setup'||V.screen==='pin') return; 
 function endDay(){
   S.ended=true; save(); V={screen:'lock'}; render();
   setTimeout(()=>openTw(false),1600);
+}
+function nextDay(){
+  if(S.day>=7) return;
+  $('#tw').classList.remove('on'); GEN++; running={};
+  const d=S.day+1; S.ended=false; S.threads['d'+d]={i:0,status:'run'}; save();
+  V={screen:'lock'}; render(); lastAct=Date.now(); runThread('d'+d);
 }
